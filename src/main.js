@@ -25,6 +25,7 @@ const lightBox = new SimpleLightbox('.gallery a',{
 const refs = {
     formElem: document.querySelector('.search-form'),
     galleryElem: document.querySelector('.gallery'),
+    galleryItem: document.querySelector('li'),
     loader: document.querySelector('.loader'),
     loadBtn: document.querySelector('.load-btn'),
 }
@@ -41,27 +42,22 @@ async function onFormElemSubmit(event) {
     refs.galleryElem.innerHTML = '';
     
     userValue = refs.formElem.elements.search.value.trim();
-    if (userValue === '') {
-        return;
-    }
+    if (!userValue) return;
 
     page = 1;
     showElem(refs.loader);
 
     try {
         const data = await getPhotos(userValue, page);
-        if (data.hits.length == 0){
-            iziToast.show({
-                message: 'Sorry, there are no images matching your search query. Please, try again!', ...messageOptions
-            });
+        if (!data.hits.length){
+            showMessage('Sorry, there are no images matching your search query. Please, try again!');
             hideElem(refs.loader);
             return;
         }
         const markup = galleryTemplate(data.hits);
         refs.galleryElem.innerHTML = markup;
-    } catch (err) { console.log(err) }
+    } catch (err) { showMessage(err) }
 
-    page += 1;
     lightBox.refresh();
     hideElem(refs.loader);
     showElem(refs.loadBtn);
@@ -72,21 +68,41 @@ refs.loadBtn.addEventListener('click', onLoadBtnClick);
 async function onLoadBtnClick() {
     hideElem(refs.loadBtn);
     showElem(refs.loader);
+    page += 1;
 
     try {
         const data = await getPhotos(userValue, page);
-        if (data.totalHits / 150 < page) {
+        if (data.totalHits / 15 < page) {
             hideElem(refs.loadBtn);
-            iziToast.show({
-                message: "We're sorry, but you've reached the end of search results.", ...messageOptions
-            })
+            hideElem(refs.loader);
+            showMessage("We're sorry, but you've reached the end of search results.");
+            return;
         }
         const markup = galleryTemplate(data.hits);
         refs.galleryElem.insertAdjacentHTML('beforeend', markup);
     } catch (err) { console.log(err) }
 
-    page += 1;
     lightBox.refresh();
     hideElem(refs.loader);
     showElem(refs.loadBtn);
+
+    const liElem = document.querySelector('li');
+    const height = liElem.getBoundingClientRect().height;
+    window.scrollBy({
+        top: height*3,
+        behavior: "smooth",
+    });
 }
+
+function showMessage(message) {
+    iziToast.show({
+        message,
+        messageColor: 'white',
+        backgroundColor: '#EF4040',
+        iconUrl: imageUrl,
+        maxWidth: '360px',
+        position: 'topRight',
+        theme: 'dark',
+    })
+}
+
