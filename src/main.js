@@ -86,12 +86,7 @@ async function onLoadBtnClick() {
     hideElem(refs.loader);
     showElem(refs.loadBtn);
 
-    const liElem = document.querySelector('li');
-    const height = liElem.getBoundingClientRect().height;
-    window.scrollBy({
-        top: height*3,
-        behavior: "smooth",
-    });
+    scroll();
 }
 
 function showMessage(message) {
@@ -106,3 +101,11 @@ function showMessage(message) {
     })
 }
 
+function scroll() {
+    const liElem = document.querySelector('li');
+    const height = liElem.getBoundingClientRect().height;
+    window.scrollBy({
+        top: height*3,
+        behavior: "smooth",
+    });
+}
