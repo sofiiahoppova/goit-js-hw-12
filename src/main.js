@@ -32,6 +32,7 @@ const refs = {
 
 let page;
 let userValue;
+let maxPage;
 
 refs.formElem.addEventListener('submit', onFormElemSubmit);
 
@@ -56,11 +57,13 @@ async function onFormElemSubmit(event) {
         }
         const markup = galleryTemplate(data.hits);
         refs.galleryElem.innerHTML = markup;
+        maxPage = Math.ceil(data.totalHits/15);
     } catch (err) { showMessage(err) }
 
     lightBox.refresh();
     hideElem(refs.loader);
     showElem(refs.loadBtn);
+    updateBtnStatus();
 }
 
 refs.loadBtn.addEventListener('click', onLoadBtnClick);
@@ -72,12 +75,6 @@ async function onLoadBtnClick() {
 
     try {
         const data = await getPhotos(userValue, page);
-        if (data.totalHits / 15 < page) {
-            hideElem(refs.loadBtn);
-            hideElem(refs.loader);
-            showMessage("We're sorry, but you've reached the end of search results.");
-            return;
-        }
         const markup = galleryTemplate(data.hits);
         refs.galleryElem.insertAdjacentHTML('beforeend', markup);
     } catch (err) { console.log(err) }
@@ -87,6 +84,7 @@ async function onLoadBtnClick() {
     showElem(refs.loadBtn);
 
     scroll();
+    updateBtnStatus();
 }
 
 function showMessage(message) {
@@ -108,4 +106,12 @@ function scroll() {
         top: height*3,
         behavior: "smooth",
     });
+}
+
+function updateBtnStatus() {
+  if (page >= maxPage) {
+    hideElem(refs.loadBtn);
+    hideElem(refs.loader);
+    showMessage("We're sorry, but you've reached the end of search results.");
+  }
 }
